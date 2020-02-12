@@ -15,7 +15,7 @@ Record log files or display log information on the terminal.
 -	FATAL
 
 ### Record format
-+ [time][level][filename:functime][line]Content
++ [time][level][filename:funcname][line]Content
 
 ## Feeling
 
