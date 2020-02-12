@@ -1,0 +1,7 @@
+[2020-02-11 23:08:14.565] [INFO] [main.go:main.main][10]User with id 10 keeps logging in again
+[2020-02-11 23:08:14.613] [DEBUG] [main.go:main.main][13]User with id 10 keeps logging in again
+[2020-02-11 23:08:14.613] [TRACE] [main.go:main.main][16]User with id 10 keeps logging in again
+[2020-02-11 23:08:14.613] [WARN] [main.go:main.main][20]User with id 10 keeps logging in again
+[2020-02-11 23:08:14.614] [ERROR] [main.go:main.main][24]User with id 10 keeps logging in again
+[2020-02-11 23:08:14.614] [FATAL] [main.go:main.main][27]User with id 10 keeps logging in again
+[2020-02-11 23:08:14.614] [FATAL] [main.go:main.main][27]User with id 10 keeps logging in again
