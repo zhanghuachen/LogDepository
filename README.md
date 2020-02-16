@@ -17,6 +17,9 @@ Record log files or display log information on the terminal.
 ### Record format
 + [time][level][filename:funcname][line]Content
 
+### Optimization
++ add a simple goroutine 
+
 ## Feeling
 
 Since I am a beginner, I think that my ability is not enough, so this log library is not complete enough. Welcome to correct it. I will be grateful.Thank you.
