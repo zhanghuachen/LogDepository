@@ -7,6 +7,16 @@ import (
 	"time"
 )
 
+type logData struct {
+	LevelNo	string
+	TimeStr	string
+	FileName string
+	FuncName string
+	Line	int
+	Message string
+
+}
+
 type LoggerFile struct {
 	FileName string
 	FilePath string
@@ -14,6 +24,7 @@ type LoggerFile struct {
 	FileLog *os.File
 	ErrFileLog *os.File
 	maxSize int64
+	logDataChan chan *logData
 }
 
 func NewFileLog(level Level, FilePath, FileName string) *LoggerFile{
@@ -22,6 +33,7 @@ func NewFileLog(level Level, FilePath, FileName string) *LoggerFile{
 		FileName:   FileName,
 		FilePath:   FilePath,
 		maxSize:	1 * 1024 * 1024,
+		logDataChan: make(chan *logData,50000),
 	}
 	fileObj.iniFileLog()
 	return fileObj
@@ -34,11 +46,12 @@ func (f *LoggerFile)iniFileLog(){
 	}
 	f.FileLog = file
 
-	errfile,err := os.OpenFile(filepath,os.O_CREATE|os.O_WRONLY|os.O_APPEND,0644)
+	errfile, err := os.OpenFile(filepath,os.O_CREATE|os.O_WRONLY|os.O_APPEND,0644)
 	if err != nil {
 		panic(fmt.Errorf("OpenFile err:%v",err))
 	}
 	f.ErrFileLog = errfile
+	go f.WriteLogBack()
 }
 
 func (f *LoggerFile)log(level Level,format string, args ...interface{}){
@@ -48,16 +61,47 @@ func (f *LoggerFile)log(level Level,format string, args ...interface{}){
 	msg := fmt.Sprintf(format,args...)
 	nowStr := time.Now().Format("[2006-01-02 15:04:05.000]")
 	Filename ,Funcname, line  := getCallerInfo(3)
-	msg = fmt.Sprintf("%s [%s] [%s:%s][%d]%s",nowStr,getLevel(level) ,Filename,Funcname,line,msg)
-	if f.checkSplit(f.FileLog) {
-		f.FileLog = f.splitLogFile(f.FileLog)
+	//msg = fmt.Sprintf("%s [%s] [%s:%s][%d]%s",nowStr,getLevel(level) ,Filename,Funcname,line,msg)
+	logData := &logData{
+		LevelNo:  getLevel(level),
+		TimeStr:  nowStr,
+		FileName: Filename,
+		FuncName: Funcname,
+		Line:     line,
+		Message:  msg,
 	}
-	fmt.Fprintln(f.FileLog, msg)
-	if level > ERROR {
-		if f.checkSplit(f.ErrFileLog) {
-			f.ErrFileLog = f.splitLogFile(f.ErrFileLog)
+
+	select {
+	case f.logDataChan <- logData:
+	default:
+
+	}
+
+	//if f.checkSplit(f.FileLog) {
+	//	f.FileLog = f.splitLogFile(f.FileLog)
+	//}
+	//fmt.Fprintln(f.FileLog, msg)
+	//if level > ERROR {
+	//	if f.checkSplit(f.ErrFileLog) {
+	//		f.ErrFileLog = f.splitLogFile(f.ErrFileLog)
+	//	}
+	//	fmt.Fprintln(f.ErrFileLog,msg)
+	//}
+}
+
+func (f *LoggerFile)WriteLogBack(){
+	for data := range f.logDataChan {
+		msg := fmt.Sprintf("%s [%s] [%s:%s][%d]%s",data.TimeStr,data.LevelNo ,data.FileName,data.FuncName,data.Line,data.Message)
+		if f.checkSplit(f.FileLog) {
+			f.FileLog = f.splitLogFile(f.FileLog)
 		}
-		fmt.Fprintln(f.ErrFileLog,msg)
+		fmt.Fprintln(f.FileLog, msg)
+		if f.level > ERROR {
+			if f.checkSplit(f.ErrFileLog) {
+				f.ErrFileLog = f.splitLogFile(f.ErrFileLog)
+			}
+			fmt.Fprintln(f.ErrFileLog,msg)
+		}
 	}
 }
 
